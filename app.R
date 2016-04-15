@@ -1,7 +1,17 @@
 library(shiny)
-ui<-fluidPage(
+ui<-navbarPage(
+    # Application title
+    id = "navBarPageID",
+    title = "Tissue Specific Enhancer/Features",
+
   #useShinyjs(),
-  tags$head(
+
+
+
+
+  tabPanel(
+    'Home',
+
     tags$style(
       HTML("     
     .selectButton {
@@ -9,18 +19,21 @@ ui<-fluidPage(
     }
 
     .btn1 {
-      border-style: 1px solid;
       position: absolute;
       left: 50%;
     }
 
     div.shiny-options-group {
+        width: 600px;
+        border-style: none;
+    }
+
+    div.checkbox {
       position: relative;
       left: 15%;
-    -webkit-column-width: 500px; /* Chrome, Safari, Opera */
-    -moz-column-width: 100px; /* Firefox */
-    column-width: 500px;
     }
+
+
 
     h4.title_pos2 {
       position: relative;
@@ -28,33 +41,27 @@ ui<-fluidPage(
 
     }
 
-    "))
-  ),
-  column(10,offset=1,
-    HTML('<h1>Identify tissue/sample-specific regions with specific epigenetic features</h1>'),
-    HTML('<p>This tool allow users to identify regions with specific epigenetic features in some tissues/samples but not 
-    other tissues/samples, like tissue-specific enhancers or H3K27ac peaks present in brain tissue but not other tissues.
-    Users need to define foreground samples and background samples. Three methods are provided for identify these regions. </p>'),
-    tags$hr()
-  ),
-  column(10,offset=1,
-  HTML(' <br> <label>select features:</label>'),
-  tabsetPanel(
-    tabPanel(
-      "ChromHMM",
-  selectInput("selectHMM", "select ChromHMM model:",
-            c("18 model" ,
-              "15 model" )
-            ),
-  fluidRow(column(8,
-  conditionalPanel(condition = "input.selectHMM == '15 model'",
-    HTML('
-  <br>
-  <label>select samples:</label>
-  <span class="tab"></span> <button id="selectAll" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
-  <br>
-  '),
-HTML('
+    ")),#end of style
+
+
+
+column(10,offset=1,
+  radioButtons("selectFeature", "select features:",inline = TRUE,width = '50%',c("ChromHMM" ,"H3K27ac" )),
+  #HTML(' <br> <label>select features:</label>'),
+  conditionalPanel(condition = "input.selectFeature == 'ChromHMM'",
+
+        radioButtons("selectHMM", "select ChromHMM model:",inline = TRUE,width = '50%',
+                  c("18 model" ,
+                    "15 model" )
+                   ),
+          fluidRow(column(8,
+            conditionalPanel(condition = "input.selectHMM == '15 model'",
+                HTML('
+              <label>select samples:</label>
+              <span class="tab"></span> <button id="selectAll" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              <br>
+                '),
+                HTML('
 
   <br>
   <div class="panel-group">
@@ -80,7 +87,7 @@ HTML('
                   <div class="checkbox">
                     <label>
                       <input type="checkbox" name="Blood_Adult" value="E062"/>
-                      <span class="checkContent" id="myt1">E062 Primary mononuclear cells from peripheral blood</span>
+                      <span class="checkContent" >E062 Primary mononuclear cells from peripheral blood</span>
                     </label>
                   </div>
                   <div class="checkbox">
@@ -1626,7 +1633,7 @@ HTML('
 
   </div>
  
-')),
+')),#end of conditionalpanel
 conditionalPanel(condition = "input.selectHMM == '18 model'",
     HTML('
   <br>
@@ -2920,33 +2927,1353 @@ conditionalPanel(condition = "input.selectHMM == '18 model'",
 
   </div>
  
-'))),
+'))#end of conditional panel
+),  #end of column 8
 
   column(4,HTML('  
-  <p> 
+  <p>
+  <button id="resetSelect" type="button" class="btn btn2 btn-default action-button" ><label>reset selection</label></button> 
   <br>
   <button id="selectFore" type="button" class="btn btn2 btn-default action-button" ><label>mark as foreground samples:</label></button>
   <pre id="summary1" class="shiny-text-output"></pre>
   <button id="selectBack" type="button" class="btn btn2 btn-default action-button"><label>mark as background samples:</label></button>
   <pre id="summary2" class="shiny-text-output"></pre>
   </p>
-  <br>'))
-  ),
+  <br>')) #end of column 4
+  ),  #end of fluidRow
 
 
+  radioButtons("selectState", "select enhancer or promoter:",inline = TRUE,width = '50%',
+                   c("enhancer" ,
+                      "promoter" )
+                  )
+ 
+), #end of first level conditionalPanel
 
-  selectInput("selectState", "select enhancer or promoter:",
-            c("enhancer" ,
-              "promoter" )
-            ),
 
-  selectInput("selectMethod", "select method:",
+  conditionalPanel(condition = "input.selectFeature == 'H3K27ac'",
+          fluidRow(column(8,
+
+
+    HTML('
+  <br>
+  <label>select samples:</label>
+  <span class="tab"></span> <button id="selectAll_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+  <br>
+  '),
+  HTML('
+
+  <br>
+  <div class="panel-group">
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title title_pos1">          
+          <a data-toggle="collapse" href="#collapse_Adult_Tissue_H3K27ac"> Adult Cells/Tissues <span class="caret"></span></a>
+        </h4>
+      </div>   
+    <div id="collapse_Adult_Tissue_H3K27ac" class="panel-collapse collapse">
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Blood_Adult_H3K27ac" >Blood <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Blood_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>        
+            <div id="collapse_Blood_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Blood_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E062"/>
+                      <span class="checkContent">E062 Primary mononuclear cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E034"/>
+                      <span class="checkContent">E034 Primary T cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E045"/>
+                      <span class="checkContent">E045 Primary T cells effector/memory enriched from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E044"/>
+                      <span class="checkContent">E044 Primary T regulatory cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E043"/>
+                      <span class="checkContent">E043 Primary T helper cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E039"/>
+                      <span class="checkContent">E039 Primary T helper naive cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E041"/>
+                      <span class="checkContent">E041 Primary T helper cells PMA-I stimulated</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E042"/>
+                      <span class="checkContent">E042 Primary T helper 17 cells PMA-I stimulated</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E040"/>
+                      <span class="checkContent">E040 Primary T helper memory cells from peripheral blood 1</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E037"/>
+                      <span class="checkContent">E037 Primary T helper memory cells from peripheral blood 2</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E048"/>
+                      <span class="checkContent">E048 Primary T CD8+ memory cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E038"/>
+                      <span class="checkContent">E038 Primary T helper naive cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E047"/>
+                      <span class="checkContent">E047 Primary T CD8+ naive cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E029"/>
+                      <span class="checkContent">E029 Primary monocytes from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E050"/>
+                      <span class="checkContent">E050 Primary hematopoietic stem cells G-CSF-mobilized Female</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E032"/>
+                      <span class="checkContent">E032 Primary B cells from peripheral blood</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E046"/>
+                      <span class="checkContent">E046 Primary Natural Killer cells from peripheral blood</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Adult_H3K27ac" value="E124"/>
+                      <span class="checkContent">E124 Monocytes-CD14+ RO01746 Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                                                                                                 
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Brain_Adult_H3K27ac" >Brain <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Brain_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>        
+            <div id="collapse_Brain_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Brain_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E071"/>
+                      <span class="checkContent">E071 Brain Hippocampus Middle</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E074"/>
+                      <span class="checkContent">E074 Brain Substantia Nigra</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E068"/>
+                      <span class="checkContent">E068 Brain Anterior Caudate</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E069"/>
+                      <span class="checkContent">E069 Brain Cingulate Gyrus</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E072"/>
+                      <span class="checkContent">E072 Brain Inferior Temporal Lobe</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E067"/>
+                      <span class="checkContent">E067 Brain Angular Gyrus</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Adult_H3K27ac" value="E073"/>
+                      <span class="checkContent">E073 Brain_Dorsolateral_Prefrontal_Cortex</span>
+                    </label>
+                  </div>                 
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Fat_Adult_H3K27ac" >Fat <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Fat_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Fat_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Fat_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Fat_Adult_H3K27ac" value="E063"/>
+                      <span class="checkContent">E063 Adipose Nuclei</span>
+                    </label>
+                  </div>
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Colon_Adult_H3K27ac" >GI_Colon <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Colon_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Colon_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Colon_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Colon_Adult_H3K27ac" value="E076"/>
+                      <span class="checkContent">E076 Colon Smooth Muscle</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Colon_Adult_H3K27ac" value="E106"/>
+                      <span class="checkContent">E106 Sigmoid Colon</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Colon_Adult_H3K27ac" value="E075"/>
+                      <span class="checkContent">E075 Colonic Mucosa</span>
+                    </label>
+                  </div>                                    
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Duodenum_Adult_H3K27ac" >GI_Duodenum <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Duodenum_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Duodenum_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Duodenum_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Duodenum_Adult_H3K27ac" value="E078"/>
+                      <span class="checkContent">E078 Duodenu</span>
+                    </label>
+                  </div>                                   
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Esophagus_Adult_H3K27ac" >GI_Esophagus <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Esophagus_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Esophagus_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Esophagus_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Esophagus_Adult_H3K27ac" value="E079"/>
+                      <span class="checkContent">E079 Esophagus</span>
+                    </label>
+                  </div>                                   
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Intestine_Adult_H3K27ac" >GI_Intestine <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Intestine_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Intestine_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Intestine_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Intestine_Adult_H3K27ac" value="E109"/>
+                      <span class="checkContent">E109 Small Intestin</span>
+                    </label>
+                  </div>                                   
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Rectum_Adult_H3K27ac" >GI_Rectum <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Rectum_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Rectum_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Rectum_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Rectum_Adult_H3K27ac" value="E103"/>
+                      <span class="checkContent">E103 Rectal Smooth Muscle</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Rectum_Adult_H3K27ac" value="E101"/>
+                      <span class="checkContent">E101 Rectal Mucosa Donor 29</span>
+                    </label>
+                  </div> 
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Rectum_Adult_H3K27ac" value="E102"/>
+                      <span class="checkContent">E102 Rectal Mucosa Donor 31</span>
+                    </label>
+                  </div>                                                                     
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Stomach_Adult_H3K27ac" >GI_Stomach <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Stomach_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Stomach_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Stomach_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Stomach_Adult_H3K27ac" value="E111"/>
+                      <span class="checkContent">E111 Stomach Smooth Muscle</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Stomach_Adult_H3K27ac" value="E094"/>
+                      <span class="checkContent">E094 Gastric</span>
+                    </label>
+                  </div>                                                                     
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Heart_Adult_H3K27ac" >Heart <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Heart_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Heart_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Heart_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Heart_Adult_H3K27ac" value="E104"/>
+                      <span class="checkContent">E104 Right Atrium</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Heart_Adult_H3K27ac" value="E095"/>
+                      <span class="checkContent">E095 Left Ventricle</span>
+                    </label>
+                  </div> 
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Heart_Adult_H3K27ac" value="E105"/>
+                      <span class="checkContent">E105 Right Ventricle</span>
+                    </label>
+                  </div>                                                                     
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Liver_Adult_H3K27ac" >Liver <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Liver_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Liver_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Liver_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Liver_Adult_H3K27ac" value="E066"/>
+                      <span class="checkContent">E066 Liver</span>
+                    </label>
+                  </div>                                                                        
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Lung_Adult_H3K27ac" >Lung <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Lung_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Lung_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Lung_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Lung_Adult_H3K27ac" value="E096"/>
+                      <span class="checkContent">E096 Lung</span>
+                    </label>
+                  </div>                                                                        
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Muscle_Adult_H3K27ac" >Muscle <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Muscle_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Muscle_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Muscle_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Adult_H3K27ac" value="E100"/>
+                      <span class="checkContent">E100 Psoas Muscle</span>
+                    </label>
+                  </div> 
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Adult_H3K27ac" value="E108"/>
+                      <span class="checkContent">E108 Skeletal Muscle Female</span>
+                    </label>
+                  </div>                                                                                                          
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Ovary_Adult_H3K27ac" >Ovary <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Ovary_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Ovary_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Ovary_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Ovary_Adult_H3K27ac" value="E097"/>
+                      <span class="checkContent">E097 Ovary</span>
+                    </label>
+                  </div>                                                                                                            
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Pancreas_Adult_H3K27ac" >Pancreas <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Pancreas_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Pancreas_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Pancreas_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Pancreas_Adult_H3K27ac" value="E087"/>
+                      <span class="checkContent">E087 Pancreatic Islets</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Pancreas_Adult_H3K27ac" value="E098"/>
+                      <span class="checkContent">E098 Pancreas</span>
+                    </label>
+                  </div>                                                                                                                           
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Spleen_Adult_H3K27ac" >Spleen <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Spleen_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Spleen_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Spleen_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Spleen_Adult_H3K27ac" value="E113"/>
+                      <span class="checkContent">E113 Spleen</span>
+                    </label>
+                  </div>                                                                                                                             
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Thymus_Adult_H3K27ac" >Thymus <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Thymus_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Thymus_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Thymus_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Thymus_Adult_H3K27ac" value="E112"/>
+                      <span class="checkContent">E112 Thymus</span>
+                    </label>
+                  </div>                                                                                                                             
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Vascular_Adult_H3K27ac" >Vascular <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Vascular_Adult_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Vascular_Adult_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Vascular_Adult_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Vascular_Adult_H3K27ac" value="E065"/>
+                      <span class="checkContent">E065 Aorta</span>
+                    </label>
+                  </div>                                                                                                                             
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+      </div> 
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title title_pos1">          
+          <a data-toggle="collapse" href="#collapse_Fetal_Tissue_H3K27ac"> Fetal Cells/Tissues <span class="caret"></span></a>
+        </h4>
+      </div>   
+    <div id="collapse_Fetal_Tissue_H3K27ac" class="panel-collapse collapse">
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Adrenal_Fetal_H3K27ac" >Adrenal <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Adrenal_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Adrenal_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Adrenal_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Adrenal_Fetal_H3K27ac" value="E080"/>
+                      <span class="checkContent">E080 Fetal Adrenal Gland</span>
+                    </label>
+                  </div>                                                                                                                             
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Intestine_Fetal_H3K27ac" >GI_Intestine <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Intestine_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Intestine_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Intestine_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Intestine_Fetal_H3K27ac" value="E085"/>
+                      <span class="checkContent">E085 Fetal Intestine Small</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Intestine_Fetal_H3K27ac" value="E084"/>
+                      <span class="checkContent">E084 Fetal Intestine Large</span>
+                    </label>
+                  </div>                                                                                                                                                               
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_GI_Stomach_Fetal_H3K27ac" >GI_Stomach <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_GI_Stomach_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_GI_Stomach_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="GI_Stomach_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="GI_Stomach_Fetal_H3K27ac" value="E092"/>
+                      <span class="checkContent">E092 Fetal Stomach</span>
+                    </label>
+                  </div>                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Muscle_Fetal_H3K27ac" >Muscle <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Muscle_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Muscle_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Muscle_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Fetal_H3K27ac" value="E089"/>
+                      <span class="checkContent">E089 Fetal Muscle Trunk</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Fetal_H3K27ac" value="E090"/>
+                      <span class="checkContent">E090 Fetal Muscle Leg</span>
+                    </label>
+                  </div>                                                                                                                                                                                  
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href= "#collapse_Placenta_Fetal_H3K27ac" >Placenta <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Placenta_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Placenta_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Placenta_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Placenta_Fetal_H3K27ac" value="E099"/>
+                      <span class="checkContent">E099 Placenta Amnion</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Placenta_Fetal_H3K27ac" value="E091"/>
+                      <span class="checkContent">E091 Placenta</span>
+                    </label>
+                  </div>                                                                                                                                                                                  
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Thymus_Fetal_H3K27ac" >Thymus <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Thymus_Fetal_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Thymus_Fetal_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Thymus_Fetal_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Thymus_Fetal_H3K27ac" value="E093"/>
+                      <span class="checkContent">E093 Fetal Thymus</span>
+                    </label>
+                  </div>                                                                                                                                                                                  
+                </div>
+              </div> 
+            </div>
+        </div>                        
+
+                                                
+      </div> 
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title title_pos1">          
+          <a data-toggle="collapse" href="#collapse_Culture_H3K27ac"> Primary Culture <span class="caret"></span></a>
+        </h4>
+      </div>   
+    <div id="collapse_Culture_H3K27ac" class="panel-collapse collapse">
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Blood_Culture_H3K27ac" >Blood <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Blood_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Blood_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Blood_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Culture_H3K27ac" value="E116"/>
+                      <span class="checkContent">E116 GM12878 Lymphoblastoid Cells</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_Culture_H3K27ac" value="E123"/>
+                      <span class="checkContent">E123 K562 Leukemia Cells</span>
+                    </label>
+                  </div>                                                                                                                                              
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Bone_Culture_H3K27ac" >Bone <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Bone_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Bone_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Bone_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Bone_Culture_H3K27ac" value="E129"/>
+                      <span class="checkContent">E129 Osteoblast Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                               
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Brain_Culture_H3K27ac" >Brain <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Brain_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Brain_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Brain_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Brain_Culture_H3K27ac" value="E125"/>
+                      <span class="checkContent">E125 NH-A Astrocytes Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Breast_Culture_H3K27ac" >Breast <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Breast_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Breast_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Breast_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Breast_Culture_H3K27ac" value="E119"/>
+                      <span class="checkContent">E119 HMEC Mammary Epithelial Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_ESC_Culture_H3K27ac" >ESC <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_ESC_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_ESC_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="ESC_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Culture_H3K27ac" value="E008"/>
+                      <span class="checkContent">E008 H9 Cells</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Culture_H3K27ac" value="E015"/>
+                      <span class="checkContent">E015 HUES6 Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Culture_H3K27ac" value="E014"/>
+                      <span class="checkContent">E014 HUES48 Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Culture_H3K27ac" value="E016"/>
+                      <span class="checkContent">E016 HUES64 Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Culture_H3K27ac" value="E003"/>
+                      <span class="checkContent">E003 H1 Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                               
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_ESC_Derived_Culture_H3K27ac" >ESC_Derived <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_ESC_Derived_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_ESC_Derived_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="ESC_Derived_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E007"/>
+                      <span class="checkContent">E007 H1 Derived Neuronal Progenitor Cultured Cells</span>
+                    </label>
+                  </div>     
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E013"/>
+                      <span class="checkContent">E013 hESC Derived CD56+ Mesoderm Cultured Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E012"/>
+                      <span class="checkContent">E012 hESC Derived CD56+ Ectoderm Cultured Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E011"/>
+                      <span class="checkContent">E011 hESC Derived CD184+ Endoderm Cultured Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E004"/>
+                      <span class="checkContent">E004 H1 BMP4 Derived Mesendoderm Cultured Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E005"/>
+                      <span class="checkContent">E005 H1 BMP4 Derived Trophoblast Cultured Cells</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="ESC_Derived_Culture_H3K27ac" value="E006"/>
+                      <span class="checkContent">E006 H1 Derived Mesenchymal Stem Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                               
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_IPSC_Culture_H3K27ac" >IPSC <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_IPSC_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_IPSC_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="IPSC_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="IPSC_Culture_H3K27ac" value="E020"/>
+                      <span class="checkContent">E020 iPS-20b Cells</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="IPSC_Culture_H3K27ac" value="E019"/>
+                      <span class="checkContent">E019 iPS-18 Cells</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="IPSC_Culture_H3K27ac" value="E021"/>
+                      <span class="checkContent">E021 iPS DF 6.9 Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="IPSC_Culture_H3K27ac" value="E022"/>
+                      <span class="checkContent">E022 iPS DF 19.11 Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                              
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Lung_Culture_H3K27ac" >Lung <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Lung_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Lung_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Lung_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Lung_Culture_H3K27ac" value="E128"/>
+                      <span class="checkContent">E128 NHLF Lung Fibroblast Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Muscle_Culture_H3K27ac" >Muscle <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Muscle_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Muscle_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Muscle_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Culture_H3K27ac" value="E120"/>
+                      <span class="checkContent">E120 HSMM Skeletal Muscle Myoblasts Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Muscle_Culture_H3K27ac" value="E121"/>
+                      <span class="checkContent">E121 HSMM cell derived Skeletal Muscle Myotubes Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                               
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Skin_Culture_H3K27ac" >Skin <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Skin_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Skin_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Skin_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E055"/>
+                      <span class="checkContent">E055 Foreskin Fibroblast Primary Cells skin01</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E056"/>
+                      <span class="checkContent">E056 Foreskin Fibroblast Primary Cells skin02</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E059"/>
+                      <span class="checkContent">E059 Foreskin Melanocyte Primary Cells skin01</span>
+                    </label>
+                  </div> 
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E061"/>
+                      <span class="checkContent">E061 Foreskin Melanocyte Primary Cells skin03</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E058"/>
+                      <span class="checkContent">E058 Foreskin Keratinocyte Primary Cells skin03</span>
+                    </label>
+                  </div> 
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E126"/>
+                      <span class="checkContent">E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells</span>
+                    </label>
+                  </div>
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Skin_Culture_H3K27ac" value="E127"/>
+                      <span class="checkContent">E127 NHEK-Epidermal Keratinocyte Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                                                                 
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Stromal_Connective_Culture_H3K27ac" >Stromal_Connective <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Stromal_Connective_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Stromal_Connective_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Stromal_Connective_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Stromal_Connective_Culture_H3K27ac" value="E026"/>
+                      <span class="checkContent">E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells</span>
+                    </label>
+                  </div>   
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Stromal_Connective_Culture_H3K27ac" value="E049"/>
+                      <span class="checkContent">E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Vascular_Culture_H3K27ac" >Vascular <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Vascular_Culture_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Vascular_Culture_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Vascular_Culture_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Vascular_Culture_H3K27ac" value="E122"/>
+                      <span class="checkContent">E122 HUVEC Umbilical Vein Endothelial Primary Cells</span>
+                    </label>
+                  </div>                                                                                                                                                                                                                                                                  
+                </div>
+              </div> 
+            </div>
+        </div>                                                                                        
+
+
+      </div> 
+    </div>
+
+
+    <div class="panel panel-default">
+      <div class="panel-heading">
+        <h4 class="panel-title title_pos1">          
+          <a data-toggle="collapse" href="#collapse_CellLine_H3K27ac"> Cell Line <span class="caret"></span></a>
+        </h4>
+      </div>   
+    <div id="collapse_CellLine_H3K27ac" class="panel-collapse collapse">
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Blood_CellLine_H3K27ac" >Blood <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Blood_CellLine_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Blood_CellLine_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Blood_CellLine_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Blood_CellLine_H3K27ac" value="E115"/>
+                      <span class="checkContent">E115 Dnd41 TCell Leukemia Cell Line</span>
+                    </label>
+                  </div>                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Cervix_CellLine_H3K27ac" >Cervix <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Cervix_CellLine_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Cervix_CellLine_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Cervix_CellLine_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Cervix_CellLine_H3K27ac" value="E117"/>
+                      <span class="checkContent">E117 HeLa-S3 Cervical Carcinoma Cell Line</span>
+                    </label>
+                  </div>                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Liver_CellLine_H3K27ac" >Liver <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Liver_CellLine_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Liver_CellLine_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Liver_CellLine_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Liver_CellLine_H3K27ac" value="E118"/>
+                      <span class="checkContent">E118 HepG2 Hepatocellular Carcinoma Cell Line</span>
+                    </label>
+                  </div>                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+              <h4 class="panel-title title_pos2">
+                <a data-toggle="collapse" href="#collapse_Lung_CellLine_H3K27ac" >Lung <span class="caret"></span></a>
+                <span class="tab"></span> <button id="select_Lung_CellLine_H3K27ac" type="button" class="btn btn1 btn-default action-button"><span class="selectButton"> select/deselect all </span></button>
+              </h4>
+            </div>
+            <div id="collapse_Lung_CellLine_H3K27ac" class="panel-collapse collapse"> 
+              <div id="Lung_CellLine_H3K27ac" class="form-group shiny-input-checkboxgroup shiny-input-container" >
+                <div class="shiny-options-group">
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Lung_CellLine_H3K27ac" value="E017"/>
+                      <span class="checkContent">E017 IMR90 fetal lung fibroblasts Cell Line</span>
+                    </label>
+                  </div>  
+                  <div class="checkbox">
+                    <label>
+                      <input type="checkbox" name="Lung_CellLine_H3K27ac" value="E114"/>
+                      <span class="checkContent">E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line</span>
+                    </label>
+                  </div>                                                                                                                                                                
+                </div>
+              </div> 
+            </div>
+        </div>                
+
+
+      </div> 
+    </div>
+
+
+  </div>
+ 
+')#end of HTML
+), #end of column 8 
+
+
+  column(4,HTML('  
+  <p>
+  <button id="resetSelect_H3K27ac" type="button" class="btn btn2 btn-default action-button" ><label>reset selection</label></button> 
+  <br>
+  <button id="selectFore_H3K27ac" type="button" class="btn btn2 btn-default action-button" ><label>mark as foreground samples:</label></button>
+  <pre id="summary1_H3K27ac" class="shiny-text-output"></pre>
+  <button id="selectBack_H3K27ac" type="button" class="btn btn2 btn-default action-button"><label>mark as background samples:</label></button>
+  <pre id="summary2_H3K27ac" class="shiny-text-output"></pre>
+  </p>
+  <br>')) #end of column 4
+  ) #end of fluidRow
+
+  
+) ,#end of first level conditionalPanel
+
+
+  #shared by all conditional panels
+  radioButtons("selectMethod", "select method:",inline = TRUE,width = '50%',
             c("cutoff" = "cutoff",
               "fisher exact test" = "fisher",
-              "clustering"="cluster"
-              
-              )
+              "clustering"="cluster")
             ),
+
   conditionalPanel(condition = "input.selectMethod == 'cutoff'",
         numericInput("foreCutoff", "minimal foreground cutoff:", 0.8,
              min = 0, step=0.05, max = 1),
@@ -2985,41 +4312,222 @@ conditionalPanel(condition = "input.selectHMM == '18 model'",
   </script>
 '
 ))),
+
     #panel for submit and output
   hr(),
   fluidRow(column(3,offset=0,actionButton(inputId = 'submit',label='Submit'))),
-  fluidRow(column(3,offset=0,conditionalPanel(condition="$('html').hasClass('shiny-busy')",
-                 tags$div("Processing...",id="process_message")))),
-  downloadButton('data_file', 'Download'),
-  helpText("Download will be available once the processing is completed."),
-  #fluidRow(column(3,offset=0,conditionalPanel(condition="!$('html').hasClass('shiny-busy')",downloadButton('downloadData', 'Download')))),
-  HTML('<br><br><br>'),
-  fluidRow(tableOutput('table'))
+  HTML('<br><br><br>')  
 
-
-          ),  #end of one tabPanel
-
-    tabPanel(
-"H3K27ac","To be built")
+) #end of column (10,offset=1)
+), #end of first level tabPanel
   
-) #end of tabsetPanel
-)
-)
 
+
+  tabPanel(
+    'Results',
+  
+column(10,offset=1,
+  fluidRow(column(6,offset=5,conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                 tags$h3("Processing...",id="process_message")))),
+  #analysis
+  hr(),
+  column(6,
+    HTML('<h3>Analysis for output regions</h3>'),
+    HTML('<p>Enrichment for H3K27ac peaks</p>'),
+    imageOutput("image1"),
+    HTML('<p>Enrichment for DNase sites</p>'),
+    imageOutput("image2"),
+
+    HTML('<p>Tissue enrichment index for H3K4me1</p>'),
+    plotOutput("image3"),
+    HTML('<p>Tissue enrichment index for H3K27ac</p>'),
+    plotOutput("image4")
+  ),
+  #data output
+  column(6,
+    HTML('<h3>Table for output regions</h3>'),
+    dataTableOutput('table1'),
+    HTML('<br><br>'), 
+    downloadButton('data_file', 'Download'),
+    helpText("Download will be available once the processing is completed.") 
+    )#end of column
+  )#end of column 10
+
+  ), #end of first level tabPanel
+
+
+  navbarMenu(
+    'Help',
+    tabPanel('About',
+      column(10,offset=1,
+          HTML('<h1>Identify tissue/sample-specific regions with specific epigenetic features</h1>'),
+          HTML('<p>This tool allow users to identify regions with specific epigenetic features in some tissues/samples but not 
+          other tissues/samples, like tissue-specific enhancers or H3K27ac peaks present in brain tissue but not other tissues.
+          Users need to define foreground samples and background samples. Three methods are provided for identify these regions. </p>'),
+          tags$hr()
+        )#end of title      
+      )#end of tabPanel
+    ) #end of first level tabPanel
+
+
+) #end of ui
+
+
+#read data (change to loading workspace)
 require(data.table)
-enhancer_logic_15 <- as.data.frame(fread('ChromHMM18_enh_logic_test2'))
-promoter_logic_15 <- as.data.frame(fread('ChromHMM18_enh_logic_test'))
-enhancer_logic_18 <- as.data.frame(fread('ChromHMM18_enh_logic_test2'))
-promoter_logic_18 <- as.data.frame(fread('ChromHMM18_enh_logic_test'))
+enhancer_logic_15 <- as.data.frame(fread('ChromHMM15_enh_logic_test'))
+promoter_logic_15 <- as.data.frame(fread('ChromHMM15_tss_logic_test'))
+enhancer_logic_18 <- as.data.frame(fread('ChromHMM18_enh_logic_test'))
+promoter_logic_18 <- as.data.frame(fread('ChromHMM18_tss_logic_test'))
+H3K27ac_logic <-promoter_logic_18
 cluster_all_15 <- as.data.frame(fread('all_cluster_ChromHMM15'))
 len_all <- dim(cluster_all_15)[2]
 cluster_all_15_last <- cluster_all_15[,len_all]
 cluster_density_15 <- as.data.frame(fread('cluster_density_ChromHMM15'))
 
+
+#create link for table
+createLink <- function(chr,start,end) {
+  sprintf('<a href="//epigenomegateway.wustl.edu/browser/?genome=hg19&datahub_jsonfile=wangftp.wustl.edu/~yhe/tse_hub.JSON&coordinate=%s:%i-%i"
+ target="_blank" class="btn btn-primary">Link</a>',chr,start,end)
+}
+
+    #enrichment analysis 
+        cal_enrichment<-function(target_file,feature_folder,output_folder,figName){
+
+          hg19_num_nucleotide <- as.numeric(2897310462)
+          #get files
+          tissues <- list.files(feature_folder)
+          tissues=tissues[order(tissues)]
+          len_tis=length(tissues)
+          sample_list=c()
+          sample_tisLen=c(0)
+          for(i in 1:len_tis){
+              path=paste(feature_folder,tissues[i],sep='/')
+              sample_list=c(sample_list,list.files(path)) #store sample
+              sample_tisLen=c(sample_tisLen,length(sample_list)) #store accumulated samples number in each tissue. first one is 0.
+          }
+
+          #get current path
+          mainDir=getwd()
+          target_path=normalizePath(target_file)
+
+          #calculate num of bp in a file
+          cal_bp=function(filepath){
+            a=fread(filepath)
+            return (sum(a[,3,with=FALSE]-a[,2,with=FALSE]))
+          }
+
+          targe_bp=cal_bp(target_path)
+          enrich_list=sample_list
+          len_list=sample_tisLen[1:len_tis] #initialize
+          samId=sample_list #initialize
+          for (i in 1:len_tis){
+            index=c((sample_tisLen[i]+1):sample_tisLen[i+1]) #samples in  tissue i
+            len_list[i]=sample_tisLen[i+1]-sample_tisLen[i] #calculate numer of samples in tissue i
+            for (j in index){
+              samId[j]<-unlist(strsplit(sample_list[j],"-"))[1] #get sample Id
+              print(sample_list[j])
+              f_path=paste(mainDir,feature_folder,tissues[i],sample_list[j],sep='/')
+              cmd=paste('bedtools','intersect','-a',target_path,'-b',f_path)
+              enrich_list[j]=cal_bp(cmd)/targe_bp *(hg19_num_nucleotide/cal_bp(f_path)) #cal enrichment
+              
+            }
+          }
+          enrich_list=as.numeric(enrich_list)
+
+          #plot enrichment using python
+          library(rPython)
+          python.load('enrich_plot.py')
+          python.call('plot_fig',tissues,len_list,samId,enrich_list,figName)
+        }
+        #end of enrichment code
+
+
+    #plot ctm
+          norm_vec <- function(x) sqrt(sum(x^2))
+          spm_vec<-function(x) as.numeric(x/norm_vec(x))
+          calculate_spm=function(data){
+            norm_data=apply(data,1,norm_vec)
+            spm_m=data/norm_data
+            return(spm_m)
+          }
+          calculate_ctm=function(spm_m,sam){
+            if (length(sam)==1){
+              return(spm_m[,sam])
+            }else{
+            return(apply(spm_m[,sam],1,norm_vec))
+            }
+          }
+
+          #plot
+          hist_density<-function(data,numNo){
+            a=hist(data,breaks=seq(0, 1, 0.05),right=FALSE,plot=FALSE)
+            b=a$counts
+            b[1]=b[1]+numNo
+            return(round(b/sum(b),4))
+          }
+
+          plot_multiple_lines=function(data,numNo,figure_name){
+
+            numCol=dim(data)[2]
+            colors=c('red','green','blue','black','magenta','orange','gray')
+            x=seq(0, 0.95, 0.05)
+            plot(x, x, type="n",xlab='ctm',ylab='frequency',cex.lab = 1.5, ylim=c(0,0.5)) 
+            for(i in c(1:numCol)){
+              lines(x,hist_density(data[,i],numNo),type='b',col=colors[i])
+            }
+            legend("topright",      # location of the legend on the heatmap plot
+              legend = colnames(data), # category labels
+              col = colors[1:numCol],  # color key
+              lty= 1,             # line style
+              bty='n', 
+              cex = 1.5, 
+            )
+          }
+
+          #calculate ctm for several tissues
+          cal_ctm_several_tis<-function(data,target_sam){
+            comb_ctm=calculate_ctm(data,target_sam)
+            for (tis in select_tissue){
+              sam=unlist(sample[tissue==tis])
+              if (length(tis)>=7){
+                sam=sam[1:7]
+              }
+              comb_ctm=cbind(comb_ctm,calculate_ctm(data,sam))
+            }
+            colnames(comb_ctm)=c('foreground_sample','brain_adult','blood_adult','heart_adult','intestine_adult','skin_cell','ESC_cell')
+            return(comb_ctm)
+          }
+
+          #plot
+          intersect_plot<-function(data,target_sam,figure_name){
+            num_noInter=0
+            spm_data=calculate_spm(data)
+            comb_ctm=cal_ctm_several_tis(spm_data,target_sam)
+            plot_multiple_lines(comb_ctm,num_noInter,figure_name) 
+          }
+    #end of ctm plot
+
+
+    #workspace for ctm plot
+          #get arguments
+          target_path='output_region/outdata'
+          coord_path='H3K4me1_H3K27ac_rpkm_coordinates1'
+          load('H3K4me1_H3K27ac_rpkm1.Rdata')
+
+          #fixed sample for ctm
+          tissue=c('BLOOD_PrimaryCulture', 'BONE_PrimaryCulture', 'BRAIN_PrimaryCulture', 'BREAST_PrimaryCulture', 'ESC_PrimaryCulture', 'ESC_DERIVED_PrimaryCulture', 'IPSC_PrimaryCulture', 'LUNG_PrimaryCulture', 'MUSCLE_PrimaryCulture', 'SKIN_PrimaryCulture', 'STROMAL_CONNECTIVE_PrimaryCulture', 'VASCULAR_PrimaryCulture', 'BLOOD_Adult', 'BRAIN_Adult', 'FAT_Adult', 'GI_COLON_Adult', 'GI_DUODENUM_Adult', 'GI_ESOPHAGUS_Adult', 'GI_INTESTINE_Adult', 'GI_RECTUM_Adult', 'GI_STOMACH_Adult', 'HEART_Adult', 'LIVER_Adult', 'LUNG_Adult', 'MUSCLE_Adult', 'OVARY_Adult', 'PANCREAS_Adult', 'SPLEEN_Adult', 'THYMUS_Adult', 'VASCULAR_Adult', 'ADRENAL_Fetal', 'GI_INTESTINE_Fetal', 'GI_STOMACH_Fetal', 'MUSCLE_Fetal', 'PLACENTA_Fetal', 'THYMUS_Fetal', 'BLOOD_CellLine', 'CERVIX_CellLine', 'LIVER_CellLine', 'LUNG_CellLine')
+          sample=list(c('E116', 'E123'), c('E129'), c('E125'), c('E119'), c('E008', 'E015', 'E014', 'E016', 'E003'), c('E007', 'E013', 'E012', 'E011', 'E004', 'E005', 'E006'), c('E020', 'E019', 'E021', 'E022'), c('E128'), c('E120', 'E121'), c('E055', 'E056', 'E059', 'E061', 'E058', 'E126', 'E127'), c('E026', 'E049'), c('E122'), c('E062', 'E034', 'E045', 'E044', 'E043', 'E039', 'E041', 'E042', 'E040', 'E037', 'E048', 'E038', 'E047', 'E029', 'E050', 'E032', 'E046', 'E124'), c('E071', 'E074', 'E068', 'E069', 'E072', 'E067', 'E073'), c('E063'), c('E076', 'E106', 'E075'), c('E078'), c('E079'), c('E109'), c('E103', 'E101', 'E102'), c('E111', 'E094'), c('E104', 'E095', 'E105'), c('E066'), c('E096'), c('E100', 'E108'), c('E097'), c('E087', 'E098'), c('E113'), c('E112'), c('E065'), c('E080'), c('E085', 'E084'), c('E092'), c('E089', 'E090'), c('E099', 'E091'), c('E093'), c('E115'), c('E117'), c('E118'), c('E017', 'E114'))
+          sample_list=unlist(sample)
+          select_tissue=c('BRAIN_Adult','BLOOD_Adult','HEART_Adult','GI_INTESTINE_Adult','SKIN_PrimaryCulture','ESC_PrimaryCulture')
+    #end of workspace for ctm plot
+
+
 server<-function(input, output,session) {
 
 #feature1 update
-#select all
+#select all for chromHMM15
         observe({
         if (input$selectAll > 0) {
           if (input$selectAll %% 2 == 1){
@@ -3123,7 +4631,7 @@ updateCheckboxGroupInput(session=session, inputId="Lung_CellLine", choices=list(
         })
 
 
-#select all for each tissue
+#select all for each tissue for ChromHMM15
 observe({ 
 if (input$select_Blood_Culture > 0) { 
   if (input$select_Blood_Culture %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Blood_Culture", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c("E116","E123"))} 
@@ -3314,7 +4822,7 @@ if (input$select_Lung_CellLine > 0) {
   else { updateCheckboxGroupInput(session=session, inputId="Lung_CellLine", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c()) }} })
 
 
-#update if chosing chromHMM18 model
+#update all selection for chromHMM18 model
           observe({
         if (input$selectAll_18 > 0) {
           if (input$selectAll_18 %% 2 == 1){
@@ -3405,7 +4913,7 @@ updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_18", choices=li
         })
 
 
-#select all for each tissue
+#select all for each tissue for ChromHMM18
 observe({ 
 if (input$select_Blood_Culture_18 > 0) { 
   if (input$select_Blood_Culture_18 %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Blood_Culture_18", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c("E116","E123"))} 
@@ -3568,10 +5076,261 @@ if (input$select_Lung_CellLine_18 > 0) {
   else { updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_18", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c()) }} })
 
 
+#update all selection for H3K27ac feature
+          observe({
+        if (input$selectAll_H3K27ac > 0) {
+          if (input$selectAll_H3K27ac %% 2 == 1){
+updateCheckboxGroupInput(session=session, inputId="Blood_Culture_H3K27ac", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c("E116","E123"))
+updateCheckboxGroupInput(session=session, inputId="Bone_Culture_H3K27ac", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c("E129"))
+updateCheckboxGroupInput(session=session, inputId="Brain_Culture_H3K27ac", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c("E125"))
+updateCheckboxGroupInput(session=session, inputId="Breast_Culture_H3K27ac", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c("E119"))
+updateCheckboxGroupInput(session=session, inputId="ESC_Culture_H3K27ac", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c("E008","E015","E014","E016","E003"))
+updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_H3K27ac", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c("E007","E013","E012","E011","E004","E005","E006"))
+updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_H3K27ac", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c("E020","E019","E021","E022"))
+updateCheckboxGroupInput(session=session, inputId="Lung_Culture_H3K27ac", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c("E128"))
+updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_H3K27ac", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c("E120","E121"))
+updateCheckboxGroupInput(session=session, inputId="Skin_Culture_H3K27ac", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c("E055","E056","E059","E061","E058","E126","E127"))
+updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_H3K27ac", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c("E026","E049"))
+updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_H3K27ac", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c("E122"))
+updateCheckboxGroupInput(session=session, inputId="Blood_Adult_H3K27ac", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c("E062","E034","E045","E044","E043","E039","E041","E042","E040","E037","E048","E038","E047","E029","E050","E032","E046","E124"))
+updateCheckboxGroupInput(session=session, inputId="Brain_Adult_H3K27ac", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c("E071","E074","E068","E069","E072","E067","E073"))
+updateCheckboxGroupInput(session=session, inputId="Fat_Adult_H3K27ac", choices=list("E063 Adipose Nuclei" ="E063"), selected= c("E063"))
+updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_H3K27ac", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c("E076","E106","E075"))
+updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_H3K27ac", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c("E078"))
+updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_H3K27ac", choices=list("E079 Esophagus" ="E079"), selected= c("E079"))
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_H3K27ac", choices=list("E109 Small Intestine" ="E109"), selected= c("E109"))
+updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_H3K27ac", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c("E103","E101","E102"))
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_H3K27ac", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c("E111","E094"))
+updateCheckboxGroupInput(session=session, inputId="Heart_Adult_H3K27ac", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c("E104","E095","E105"))
+updateCheckboxGroupInput(session=session, inputId="Liver_Adult_H3K27ac", choices=list("E066 Liver" ="E066"), selected= c("E066"))
+updateCheckboxGroupInput(session=session, inputId="Lung_Adult_H3K27ac", choices=list("E096 Lung" ="E096"), selected= c("E096"))
+updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_H3K27ac", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c("E100","E108"))
+updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_H3K27ac", choices=list("E097 Ovary" ="E097"), selected= c("E097"))
+updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_H3K27ac", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c("E087","E098"))
+updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_H3K27ac", choices=list("E113 Spleen" ="E113"), selected= c("E113"))
+updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_H3K27ac", choices=list("E112 Thymus" ="E112"), selected= c("E112"))
+updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_H3K27ac", choices=list("E065 Aorta" ="E065"), selected= c("E065"))
+updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_H3K27ac", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c("E080"))
+updateCheckboxGroupInput(session=session, inputId="Brain_Fetal_H3K27ac", choices=list("E070 Brain Germinal Matrix" ="E070","E082 Fetal Brain Female" ="E082","E081 Fetal Brain Male" ="E081"), selected= c("E070","E082","E081"))
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_H3K27ac", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c("E085","E084"))
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_H3K27ac", choices=list("E092 Fetal Stomach" ="E092"), selected= c("E092"))
+updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_H3K27ac", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c("E089","E090"))
+updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_H3K27ac", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c("E099","E091"))
+updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_H3K27ac", choices=list("E093 Fetal Thymus" ="E093"), selected= c("E093"))
+updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_H3K27ac", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c("E115"))
+updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_H3K27ac", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c("E117"))
+updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_H3K27ac", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c("E118"))
+updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_H3K27ac", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c("E017","E114"))                                                                          
+          }
+          else {
+updateCheckboxGroupInput(session=session, inputId="Blood_Culture_H3K27ac", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Bone_Culture_H3K27ac", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Culture_H3K27ac", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Breast_Culture_H3K27ac", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Culture_H3K27ac", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_H3K27ac", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_H3K27ac", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Culture_H3K27ac", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_H3K27ac", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Skin_Culture_H3K27ac", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_H3K27ac", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_H3K27ac", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_Adult_H3K27ac", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Adult_H3K27ac", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Fat_Adult_H3K27ac", choices=list("E063 Adipose Nuclei" ="E063"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_H3K27ac", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_H3K27ac", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_H3K27ac", choices=list("E079 Esophagus" ="E079"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_H3K27ac", choices=list("E109 Small Intestine" ="E109"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_H3K27ac", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_H3K27ac", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Heart_Adult_H3K27ac", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_Adult_H3K27ac", choices=list("E066 Liver" ="E066"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Adult_H3K27ac", choices=list("E096 Lung" ="E096"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_H3K27ac", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_H3K27ac", choices=list("E097 Ovary" ="E097"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_H3K27ac", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_H3K27ac", choices=list("E113 Spleen" ="E113"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_H3K27ac", choices=list("E112 Thymus" ="E112"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_H3K27ac", choices=list("E065 Aorta" ="E065"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_H3K27ac", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_H3K27ac", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_H3K27ac", choices=list("E092 Fetal Stomach" ="E092"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_H3K27ac", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_H3K27ac", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_H3K27ac", choices=list("E093 Fetal Thymus" ="E093"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_H3K27ac", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_H3K27ac", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_H3K27ac", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_H3K27ac", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c())                                         
+            }}
+        })
+
+
+#select all for each tissue for H3k27ac feature
+observe({ 
+if (input$select_Blood_Culture_H3K27ac > 0) { 
+  if (input$select_Blood_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Blood_Culture_H3K27ac", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c("E116","E123"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Blood_Culture_H3K27ac", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c()) }} })
+observe({ 
+if (input$select_Bone_Culture_H3K27ac > 0) { 
+  if (input$select_Bone_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Bone_Culture_H3K27ac", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c("E129"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Bone_Culture_H3K27ac", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c()) }} })
+observe({ 
+if (input$select_Brain_Culture_H3K27ac > 0) { 
+  if (input$select_Brain_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Brain_Culture_H3K27ac", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c("E125"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Brain_Culture_H3K27ac", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c()) }} })
+observe({ 
+if (input$select_Breast_Culture_H3K27ac > 0) { 
+  if (input$select_Breast_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Breast_Culture_H3K27ac", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c("E119"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Breast_Culture_H3K27ac", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c()) }} })
+observe({ 
+if (input$select_ESC_Culture_H3K27ac > 0) { 
+  if (input$select_ESC_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="ESC_Culture_H3K27ac", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c("E008","E015","E014","E016","E003"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="ESC_Culture_H3K27ac", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c()) }} })
+observe({ 
+if (input$select_ESC_Derived_Culture_H3K27ac > 0) { 
+  if (input$select_ESC_Derived_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_H3K27ac", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c("E007","E013","E012","E011","E004","E005","E006"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_H3K27ac", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c()) }} })
+observe({ 
+if (input$select_IPSC_Culture_H3K27ac > 0) { 
+  if (input$select_IPSC_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_H3K27ac", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c("E020","E019","E021","E022"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_H3K27ac", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c()) }} })
+observe({ 
+if (input$select_Lung_Culture_H3K27ac > 0) { 
+  if (input$select_Lung_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Lung_Culture_H3K27ac", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c("E128"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Lung_Culture_H3K27ac", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c()) }} })
+observe({ 
+if (input$select_Muscle_Culture_H3K27ac > 0) { 
+  if (input$select_Muscle_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_H3K27ac", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c("E120","E121"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_H3K27ac", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c()) }} })
+observe({ 
+if (input$select_Skin_Culture_H3K27ac > 0) { 
+  if (input$select_Skin_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Skin_Culture_H3K27ac", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c("E055","E056","E059","E061","E058","E126","E127"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Skin_Culture_H3K27ac", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c()) }} })
+observe({ 
+if (input$select_Stromal_Connective_Culture_H3K27ac > 0) { 
+  if (input$select_Stromal_Connective_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_H3K27ac", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c("E026","E049"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_H3K27ac", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c()) }} })
+observe({ 
+if (input$select_Vascular_Culture_H3K27ac > 0) { 
+  if (input$select_Vascular_Culture_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_H3K27ac", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c("E122"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_H3K27ac", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c()) }} })
+observe({ 
+if (input$select_Blood_Adult_H3K27ac > 0) { 
+  if (input$select_Blood_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Blood_Adult_H3K27ac", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c("E062","E034","E045","E044","E043","E039","E041","E042","E040","E037","E048","E038","E047","E029","E050","E032","E046","E124"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Blood_Adult_H3K27ac", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c()) }} })
+observe({ 
+if (input$select_Brain_Adult_H3K27ac > 0) { 
+  if (input$select_Brain_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Brain_Adult_H3K27ac", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c("E071","E074","E068","E069","E072","E067","E073"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Brain_Adult_H3K27ac", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c()) }} })
+observe({ 
+if (input$select_Fat_Adult_H3K27ac > 0) { 
+  if (input$select_Fat_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Fat_Adult_H3K27ac", choices=list("E063 Adipose Nuclei" ="E063"), selected= c("E063"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Fat_Adult_H3K27ac", choices=list("E063 Adipose Nuclei" ="E063"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Colon_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Colon_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_H3K27ac", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c("E076","E106","E075"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_H3K27ac", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Duodenum_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Duodenum_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_H3K27ac", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c("E078"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_H3K27ac", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Esophagus_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Esophagus_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_H3K27ac", choices=list("E079 Esophagus" ="E079"), selected= c("E079"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_H3K27ac", choices=list("E079 Esophagus" ="E079"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Intestine_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Intestine_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_H3K27ac", choices=list("E109 Small Intestine" ="E109"), selected= c("E109"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_H3K27ac", choices=list("E109 Small Intestine" ="E109"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Rectum_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Rectum_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_H3K27ac", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c("E103","E101","E102"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_H3K27ac", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Stomach_Adult_H3K27ac > 0) { 
+  if (input$select_GI_Stomach_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_H3K27ac", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c("E111","E094"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_H3K27ac", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c()) }} })
+observe({ 
+if (input$select_Heart_Adult_H3K27ac > 0) { 
+  if (input$select_Heart_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Heart_Adult_H3K27ac", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c("E104","E095","E105"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Heart_Adult_H3K27ac", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c()) }} })
+observe({ 
+if (input$select_Liver_Adult_H3K27ac > 0) { 
+  if (input$select_Liver_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Liver_Adult_H3K27ac", choices=list("E066 Liver" ="E066"), selected= c("E066"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Liver_Adult_H3K27ac", choices=list("E066 Liver" ="E066"), selected= c()) }} })
+observe({ 
+if (input$select_Lung_Adult_H3K27ac > 0) { 
+  if (input$select_Lung_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Lung_Adult_H3K27ac", choices=list("E096 Lung" ="E096"), selected= c("E096"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Lung_Adult_H3K27ac", choices=list("E096 Lung" ="E096"), selected= c()) }} })
+observe({ 
+if (input$select_Muscle_Adult_H3K27ac > 0) { 
+  if (input$select_Muscle_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_H3K27ac", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c("E100","E108"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_H3K27ac", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c()) }} })
+observe({ 
+if (input$select_Ovary_Adult_H3K27ac > 0) { 
+  if (input$select_Ovary_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_H3K27ac", choices=list("E097 Ovary" ="E097"), selected= c("E097"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_H3K27ac", choices=list("E097 Ovary" ="E097"), selected= c()) }} })
+observe({ 
+if (input$select_Pancreas_Adult_H3K27ac > 0) { 
+  if (input$select_Pancreas_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_H3K27ac", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c("E087","E098"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_H3K27ac", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c()) }} })
+observe({ 
+if (input$select_Spleen_Adult_H3K27ac > 0) { 
+  if (input$select_Spleen_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_H3K27ac", choices=list("E113 Spleen" ="E113"), selected= c("E113"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_H3K27ac", choices=list("E113 Spleen" ="E113"), selected= c()) }} })
+observe({ 
+if (input$select_Thymus_Adult_H3K27ac > 0) { 
+  if (input$select_Thymus_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_H3K27ac", choices=list("E112 Thymus" ="E112"), selected= c("E112"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_H3K27ac", choices=list("E112 Thymus" ="E112"), selected= c()) }} })
+observe({ 
+if (input$select_Vascular_Adult_H3K27ac > 0) { 
+  if (input$select_Vascular_Adult_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_H3K27ac", choices=list("E065 Aorta" ="E065"), selected= c("E065"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_H3K27ac", choices=list("E065 Aorta" ="E065"), selected= c()) }} })
+observe({ 
+if (input$select_Adrenal_Fetal_H3K27ac > 0) { 
+  if (input$select_Adrenal_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_H3K27ac", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c("E080"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_H3K27ac", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Intestine_Fetal_H3K27ac > 0) { 
+  if (input$select_GI_Intestine_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_H3K27ac", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c("E085","E084"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_H3K27ac", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c()) }} })
+observe({ 
+if (input$select_GI_Stomach_Fetal_H3K27ac > 0) { 
+  if (input$select_GI_Stomach_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_H3K27ac", choices=list("E092 Fetal Stomach" ="E092"), selected= c("E092"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_H3K27ac", choices=list("E092 Fetal Stomach" ="E092"), selected= c()) }} })
+observe({ 
+if (input$select_Muscle_Fetal_H3K27ac > 0) { 
+  if (input$select_Muscle_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_H3K27ac", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c("E089","E090"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_H3K27ac", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c()) }} })
+observe({ 
+if (input$select_Placenta_Fetal_H3K27ac > 0) { 
+  if (input$select_Placenta_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_H3K27ac", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c("E099","E091"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_H3K27ac", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c()) }} })
+observe({ 
+if (input$select_Thymus_Fetal_H3K27ac > 0) { 
+  if (input$select_Thymus_Fetal_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_H3K27ac", choices=list("E093 Fetal Thymus" ="E093"), selected= c("E093"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_H3K27ac", choices=list("E093 Fetal Thymus" ="E093"), selected= c()) }} })
+observe({ 
+if (input$select_Blood_CellLine_H3K27ac > 0) { 
+  if (input$select_Blood_CellLine_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_H3K27ac", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c("E115"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_H3K27ac", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c()) }} })
+observe({ 
+if (input$select_Cervix_CellLine_H3K27ac > 0) { 
+  if (input$select_Cervix_CellLine_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_H3K27ac", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c("E117"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_H3K27ac", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c()) }} })
+observe({ 
+if (input$select_Liver_CellLine_H3K27ac > 0) { 
+  if (input$select_Liver_CellLine_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_H3K27ac", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c("E118"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_H3K27ac", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c()) }} })
+observe({ 
+if (input$select_Lung_CellLine_H3K27ac > 0) { 
+  if (input$select_Lung_CellLine_H3K27ac %% 2 == 1){ updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_H3K27ac", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c("E017","E114"))} 
+  else { updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_H3K27ac", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c()) }} })
+
 ############################################
-
-
-
+  #foreground and background
   fore <- reactiveValues(data = NULL)
   back <- reactiveValues(data = NULL)
 
@@ -3596,25 +5355,215 @@ if (input$select_Lung_CellLine_18 > 0) {
 
     })
 
+  observeEvent(input$selectFore_H3K27ac,{
+      fore$data <- c(input$Blood_Culture_H3K27ac,input$Bone_Culture_H3K27ac,input$Brain_Culture_H3K27ac,input$Breast_Culture_H3K27ac,input$ESC_Culture_H3K27ac,input$ESC_Derived_Culture_H3K27ac,input$Fat_Culture_H3K27ac,input$IPSC_Culture_H3K27ac,input$Lung_Culture_H3K27ac,input$Muscle_Culture_H3K27ac,input$Skin_Culture_H3K27ac,input$Stromal_Connective_Culture_H3K27ac,input$Vascular_Culture_H3K27ac,input$Blood_Adult_H3K27ac,input$Brain_Adult_H3K27ac,input$Breast_Adult_H3K27ac,input$Fat_Adult_H3K27ac,input$GI_Colon_Adult_H3K27ac,input$GI_Duodenum_Adult_H3K27ac,input$GI_Esophagus_Adult_H3K27ac,input$GI_Intestine_Adult_H3K27ac,input$GI_Rectum_Adult_H3K27ac,input$GI_Stomach_Adult_H3K27ac,input$Heart_Adult_H3K27ac,input$Liver_Adult_H3K27ac,input$Lung_Adult_H3K27ac,input$Muscle_Adult_H3K27ac,input$Ovary_Adult_H3K27ac,input$Pancreas_Adult_H3K27ac,input$Spleen_Adult_H3K27ac,input$Thymus_Adult_H3K27ac,input$Vascular_Adult_H3K27ac,input$Adrenal_Fetal_H3K27ac,input$Blood_Fetal_H3K27ac,input$Brain_Fetal_H3K27ac,input$GI_Intestine_Fetal_H3K27ac,input$GI_Stomach_Fetal_H3K27ac,input$Heart_Fetal_H3K27ac,input$Kidney_Fetal_H3K27ac,input$Lung_Fetal_H3K27ac,input$Muscle_Fetal_H3K27ac,input$Placenta_Fetal_H3K27ac,input$Thymus_Fetal_H3K27ac,input$Blood_CellLine_H3K27ac,input$Cervix_CellLine_H3K27ac,input$Liver_CellLine_H3K27ac,input$Lung_CellLine_H3K27ac)      
+    })
+
+  observeEvent(input$selectBack_H3K27ac,{
+      all_select <- c(input$Blood_Culture_H3K27ac,input$Bone_Culture_H3K27ac,input$Brain_Culture_H3K27ac,input$Breast_Culture_H3K27ac,input$ESC_Culture_H3K27ac,input$ESC_Derived_Culture_H3K27ac,input$Fat_Culture_H3K27ac,input$IPSC_Culture_H3K27ac,input$Lung_Culture_H3K27ac,input$Muscle_Culture_H3K27ac,input$Skin_Culture_H3K27ac,input$Stromal_Connective_Culture_H3K27ac,input$Vascular_Culture_H3K27ac,input$Blood_Adult_H3K27ac,input$Brain_Adult_H3K27ac,input$Breast_Adult_H3K27ac,input$Fat_Adult_H3K27ac,input$GI_Colon_Adult_H3K27ac,input$GI_Duodenum_Adult_H3K27ac,input$GI_Esophagus_Adult_H3K27ac,input$GI_Intestine_Adult_H3K27ac,input$GI_Rectum_Adult_H3K27ac,input$GI_Stomach_Adult_H3K27ac,input$Heart_Adult_H3K27ac,input$Liver_Adult_H3K27ac,input$Lung_Adult_H3K27ac,input$Muscle_Adult_H3K27ac,input$Ovary_Adult_H3K27ac,input$Pancreas_Adult_H3K27ac,input$Spleen_Adult_H3K27ac,input$Thymus_Adult_H3K27ac,input$Vascular_Adult_H3K27ac,input$Adrenal_Fetal_H3K27ac,input$Blood_Fetal_H3K27ac,input$Brain_Fetal_H3K27ac,input$GI_Intestine_Fetal_H3K27ac,input$GI_Stomach_Fetal_H3K27ac,input$Heart_Fetal_H3K27ac,input$Kidney_Fetal_H3K27ac,input$Lung_Fetal_H3K27ac,input$Muscle_Fetal_H3K27ac,input$Placenta_Fetal_H3K27ac,input$Thymus_Fetal_H3K27ac,input$Blood_CellLine_H3K27ac,input$Cervix_CellLine_H3K27ac,input$Liver_CellLine_H3K27ac,input$Lung_CellLine_H3K27ac)     
+      fore_index <- match(fore$data,all_select)     
+      back$data <- all_select[-fore_index]
+
+    })
+
+  #print out selected foreground and background samples
   output$summary1 <- renderPrint({
+    validate(
+      need(length(fore$data) != 0, "Please select foreground samples.")
+    )
     print(fore$data)
   })
 
   output$summary2 <- renderPrint({
+    validate(
+      need(length(back$data) != 0, "Please select background samples after finishing selecting foreground samples.")
+    )
+    print(back$data)
+  })
+
+  output$summary1_H3K27ac <- renderPrint({
+    validate(
+      need(length(fore$data) != 0, "Please select foreground samples.")
+    )
+    print(fore$data)
+  })
+
+  output$summary2_H3K27ac <- renderPrint({
+    validate(
+      need(length(back$data) != 0, "Please select background samples after finishing selecting foreground samples.")
+    )
     print(back$data)
   })
 
 
+  #reset selected sampes to null
+  observeEvent(input$resetSelect,{
+    fore$data=NULL
+    back$data=NULL
+    if (input$selectHMM == '15 model'){
+updateCheckboxGroupInput(session=session, inputId="Blood_Culture", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Bone_Culture", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Culture", choices=list("E054 Ganglion Eminence derived primary cultured neurospheres" ="E054","E053 Cortex derived primary cultured neurospheres" ="E053","E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Breast_Culture", choices=list("E028 Breast variant Human Mammary Epithelial Cells (vHMEC)" ="E028","E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Culture", choices=list("E002 ES-WA7 Cells" ="E002","E008 H9 Cells" ="E008","E001 ES-I3 Cells" ="E001","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003","E024 ES-UCSF4  Cells" ="E024"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E009 H9 Derived Neuronal Progenitor Cultured Cells" ="E009","E010 H9 Derived Neuron Cultured Cells" ="E010","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Fat_Culture", choices=list("E025 Adipose Derived Mesenchymal Stem Cell Cultured Cells" ="E025","E023 Mesenchymal Stem Cell Derived Adipocyte Cultured Cells" ="E023"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="IPSC_Culture", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E018 iPS-15b Cells" ="E018","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Culture", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Culture", choices=list("E052 Muscle Satellite Cultured Cells" ="E052","E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Skin_Culture", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E057 Foreskin Keratinocyte Primary Cells skin02" ="E057","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Culture", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_Adult", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E035 Primary hematopoietic stem cells" ="E035","E051 Primary hematopoietic stem cells G-CSF-mobilized Male" ="E051","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E036 Primary hematopoietic stem cells short term culture" ="E036","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E030 Primary neutrophils from peripheral blood" ="E030","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Adult", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Breast_Adult", choices=list("E027 Breast Myoepithelial Primary Cells" ="E027"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Fat_Adult", choices=list("E063 Adipose Nuclei" ="E063"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult", choices=list("E078 Duodenum Smooth Muscle" ="E078","E077 Duodenum Mucosa" ="E077"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult", choices=list("E079 Esophagus" ="E079"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult", choices=list("E109 Small Intestine" ="E109"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult", choices=list("E111 Stomach Smooth Muscle" ="E111","E110 Stomach Mucosa" ="E110","E094 Gastric" ="E094"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Heart_Adult", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_Adult", choices=list("E066 Liver" ="E066"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Adult", choices=list("E096 Lung" ="E096"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Adult", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108","E107 Skeletal Muscle Male" ="E107"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Ovary_Adult", choices=list("E097 Ovary" ="E097"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Spleen_Adult", choices=list("E113 Spleen" ="E113"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Adult", choices=list("E112 Thymus" ="E112"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Adult", choices=list("E065 Aorta" ="E065"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_Fetal", choices=list("E033 Primary T cells from cord blood" ="E033","E031 Primary B cells from cord blood" ="E031"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Fetal", choices=list("E070 Brain Germinal Matrix" ="E070","E082 Fetal Brain Female" ="E082","E081 Fetal Brain Male" ="E081"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal", choices=list("E092 Fetal Stomach" ="E092"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Heart_Fetal", choices=list("E083 Fetal Heart" ="E083"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Kidney_Fetal", choices=list("E086 Fetal Kidney" ="E086"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Fetal", choices=list("E088 Fetal Lung" ="E088"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal", choices=list("E093 Fetal Thymus" ="E093"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_CellLine", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_CellLine", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_CellLine", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c())                                         
+     }else{
+updateCheckboxGroupInput(session=session, inputId="Blood_Culture_18", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Bone_Culture_18", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Culture_18", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Breast_Culture_18", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Culture_18", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_18", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_18", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Culture_18", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_18", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Skin_Culture_18", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_18", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_18", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_Adult_18", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Adult_18", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Fat_Adult_18", choices=list("E063 Adipose Nuclei" ="E063"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_18", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_18", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_18", choices=list("E079 Esophagus" ="E079"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_18", choices=list("E109 Small Intestine" ="E109"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_18", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_18", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Heart_Adult_18", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_Adult_18", choices=list("E066 Liver" ="E066"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Adult_18", choices=list("E096 Lung" ="E096"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_18", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_18", choices=list("E097 Ovary" ="E097"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_18", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_18", choices=list("E113 Spleen" ="E113"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_18", choices=list("E112 Thymus" ="E112"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_18", choices=list("E065 Aorta" ="E065"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_18", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_18", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_18", choices=list("E092 Fetal Stomach" ="E092"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_18", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_18", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_18", choices=list("E093 Fetal Thymus" ="E093"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_18", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_18", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_18", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_18", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c())                                         
+       }
+    })
+
+  #reset selected sampes to null for H3k27ac feature
+  observeEvent(input$resetSelect_H3K27ac,{
+    fore$data=NULL
+    back$data=NULL
+
+updateCheckboxGroupInput(session=session, inputId="Blood_Culture_H3K27ac", choices=list("E116 GM12878 Lymphoblastoid Cells" ="E116","E123 K562 Leukemia Cells" ="E123"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Bone_Culture_H3K27ac", choices=list("E129 Osteoblast Primary Cells" ="E129"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Culture_H3K27ac", choices=list("E125 NH-A Astrocytes Primary Cells" ="E125"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Breast_Culture_H3K27ac", choices=list("E119 HMEC Mammary Epithelial Primary Cells" ="E119"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Culture_H3K27ac", choices=list("E008 H9 Cells" ="E008","E015 HUES6 Cells" ="E015","E014 HUES48 Cells" ="E014","E016 HUES64 Cells" ="E016","E003 H1 Cells" ="E003"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="ESC_Derived_Culture_H3K27ac", choices=list("E007 H1 Derived Neuronal Progenitor Cultured Cells" ="E007","E013 hESC Derived CD56+ Mesoderm Cultured Cells" ="E013","E012 hESC Derived CD56+ Ectoderm Cultured Cells" ="E012","E011 hESC Derived CD184+ Endoderm Cultured Cells" ="E011","E004 H1 BMP4 Derived Mesendoderm Cultured Cells" ="E004","E005 H1 BMP4 Derived Trophoblast Cultured Cells" ="E005","E006 H1 Derived Mesenchymal Stem Cells" ="E006"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="IPSC_Culture_H3K27ac", choices=list("E020 iPS-20b Cells" ="E020","E019 iPS-18 Cells" ="E019","E021 iPS DF 6.9 Cells" ="E021","E022 iPS DF 19.11 Cells" ="E022"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Culture_H3K27ac", choices=list("E128 NHLF Lung Fibroblast Primary Cells" ="E128"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Culture_H3K27ac", choices=list("E120 HSMM Skeletal Muscle Myoblasts Cells" ="E120","E121 HSMM cell derived Skeletal Muscle Myotubes Cells" ="E121"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Skin_Culture_H3K27ac", choices=list("E055 Foreskin Fibroblast Primary Cells skin01" ="E055","E056 Foreskin Fibroblast Primary Cells skin02" ="E056","E059 Foreskin Melanocyte Primary Cells skin01" ="E059","E061 Foreskin Melanocyte Primary Cells skin03" ="E061","E058 Foreskin Keratinocyte Primary Cells skin03" ="E058","E126 NHDF-Ad Adult Dermal Fibroblast Primary Cells" ="E126","E127 NHEK-Epidermal Keratinocyte Primary Cells" ="E127"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Stromal_Connective_Culture_H3K27ac", choices=list("E026 Bone Marrow Derived Cultured Mesenchymal Stem Cells" ="E026","E049 Mesenchymal Stem Cell Derived Chondrocyte Cultured Cells" ="E049"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Culture_H3K27ac", choices=list("E122 HUVEC Umbilical Vein Endothelial Primary Cells" ="E122"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_Adult_H3K27ac", choices=list("E062 Primary mononuclear cells from peripheral blood" ="E062","E034 Primary T cells from peripheral blood" ="E034","E045 Primary T cells effector/memory enriched from peripheral blood" ="E045","E044 Primary T regulatory cells from peripheral blood" ="E044","E043 Primary T helper cells from peripheral blood" ="E043","E039 Primary T helper naive cells from peripheral blood" ="E039","E041 Primary T helper cells PMA-I stimulated" ="E041","E042 Primary T helper 17 cells PMA-I stimulated" ="E042","E040 Primary T helper memory cells from peripheral blood 1" ="E040","E037 Primary T helper memory cells from peripheral blood 2" ="E037","E048 Primary T CD8+ memory cells from peripheral blood" ="E048","E038 Primary T helper naive cells from peripheral blood" ="E038","E047 Primary T CD8+ naive cells from peripheral blood" ="E047","E029 Primary monocytes from peripheral blood" ="E029","E050 Primary hematopoietic stem cells G-CSF-mobilized Female" ="E050","E032 Primary B cells from peripheral blood" ="E032","E046 Primary Natural Killer cells from peripheral blood" ="E046","E124 Monocytes-CD14+ RO01746 Primary Cells" ="E124"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Brain_Adult_H3K27ac", choices=list("E071 Brain Hippocampus Middle" ="E071","E074 Brain Substantia Nigra" ="E074","E068 Brain Anterior Caudate" ="E068","E069 Brain Cingulate Gyrus" ="E069","E072 Brain Inferior Temporal Lobe" ="E072","E067 Brain Angular Gyrus" ="E067","E073 Brain_Dorsolateral_Prefrontal_Cortex" ="E073"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Fat_Adult_H3K27ac", choices=list("E063 Adipose Nuclei" ="E063"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Colon_Adult_H3K27ac", choices=list("E076 Colon Smooth Muscle" ="E076","E106 Sigmoid Colon" ="E106","E075 Colonic Mucosa" ="E075"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Duodenum_Adult_H3K27ac", choices=list("E078 Duodenum Smooth Muscle" ="E078"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Esophagus_Adult_H3K27ac", choices=list("E079 Esophagus" ="E079"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Adult_H3K27ac", choices=list("E109 Small Intestine" ="E109"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Rectum_Adult_H3K27ac", choices=list("E103 Rectal Smooth Muscle" ="E103","E101 Rectal Mucosa Donor 29" ="E101","E102 Rectal Mucosa Donor 31" ="E102"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Adult_H3K27ac", choices=list("E111 Stomach Smooth Muscle" ="E111","E094 Gastric" ="E094"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Heart_Adult_H3K27ac", choices=list("E104 Right Atrium" ="E104","E095 Left Ventricle" ="E095","E105 Right Ventricle" ="E105"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_Adult_H3K27ac", choices=list("E066 Liver" ="E066"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_Adult_H3K27ac", choices=list("E096 Lung" ="E096"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Adult_H3K27ac", choices=list("E100 Psoas Muscle" ="E100","E108 Skeletal Muscle Female" ="E108"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Ovary_Adult_H3K27ac", choices=list("E097 Ovary" ="E097"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Pancreas_Adult_H3K27ac", choices=list("E087 Pancreatic Islets" ="E087","E098 Pancreas" ="E098"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Spleen_Adult_H3K27ac", choices=list("E113 Spleen" ="E113"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Adult_H3K27ac", choices=list("E112 Thymus" ="E112"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Vascular_Adult_H3K27ac", choices=list("E065 Aorta" ="E065"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Adrenal_Fetal_H3K27ac", choices=list("E080 Fetal Adrenal Gland" ="E080"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Intestine_Fetal_H3K27ac", choices=list("E085 Fetal Intestine Small" ="E085","E084 Fetal Intestine Large" ="E084"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="GI_Stomach_Fetal_H3K27ac", choices=list("E092 Fetal Stomach" ="E092"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Muscle_Fetal_H3K27ac", choices=list("E089 Fetal Muscle Trunk" ="E089","E090 Fetal Muscle Leg" ="E090"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Placenta_Fetal_H3K27ac", choices=list("E099 Placenta Amnion" ="E099","E091 Placenta" ="E091"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Thymus_Fetal_H3K27ac", choices=list("E093 Fetal Thymus" ="E093"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Blood_CellLine_H3K27ac", choices=list("E115 Dnd41 TCell Leukemia Cell Line" ="E115"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Cervix_CellLine_H3K27ac", choices=list("E117 HeLa-S3 Cervical Carcinoma Cell Line" ="E117"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Liver_CellLine_H3K27ac", choices=list("E118 HepG2 Hepatocellular Carcinoma Cell Line" ="E118"), selected= c())
+updateCheckboxGroupInput(session=session, inputId="Lung_CellLine_H3K27ac", choices=list("E017 IMR90 fetal lung fibroblasts Cell Line" ="E017","E114 A549 EtOH 0.02pct Lung Carcinoma Cell Line" ="E114"), selected= c())                                         
+    })
+
+    #get data
   sample_logic=reactive({
-        if (input$selectState=="enhancer"){
-          enhancer_logic_15
+      if (input$selectFeature=='ChromHMM'){
+        if (input$selectHMM=='15 model'){
+          if (input$selectState=="enhancer"){
+            enhancer_logic_15
+            }else{
+            promoter_logic_15 
+            }
         }else{
-          promoter_logic_15
+          if (input$selectState=="enhancer"){
+            enhancer_logic_18
+            }else{
+            promoter_logic_18 
+            }
         }
+      }else{
+        H3K27ac_logic
+      }
 
     })
-        len_fore=reactive({length(fore$data)})
-        len_back=reactive({length(back$data)})
+
+  #calcualte foreground sample and background sample sum
+   len_fore=reactive({length(fore$data)})
+   len_back=reactive({length(back$data)})
 
   foreSum=reactive({
 
@@ -3638,11 +5587,15 @@ if (input$select_Lung_CellLine_18 > 0) {
           apply(sample_logic()[,back$data],1,sum)
         }
     })
-  print('t1')
 
-        # print(len_fore())
 
-#table
+  observeEvent(input$submit,{
+    updateTabsetPanel(session, "navBarPageID", selected = "Results")
+
+    })
+
+
+#generate output table
   table <-eventReactive(input$submit,{
       ptm <- proc.time()
 
@@ -3650,12 +5603,14 @@ if (input$select_Lung_CellLine_18 > 0) {
     if (input$selectMethod=="cutoff"){
         forePer=foreSum()/len_fore()
         backPer=backSum()/len_back()
-        diff=forePer-backPer
+        diff=round(forePer-backPer,3)
         logic=forePer>=input$foreCutoff & backPer<= input$backCutoff 
         final_data=cbind(sample_logic()[logic,1:3],diff[logic])
         len_final=dim(final_data)[2]
         final_data=final_data[order(-final_data[,len_final]),]
         names(final_data)[len_final]="difference"
+
+
     #fisher method
     }else if (input$selectMethod=="fisher"){
         fore_zeroN=len_fore()-foreSum()
@@ -3674,7 +5629,11 @@ if (input$select_Lung_CellLine_18 > 0) {
         len_final=dim(final_data)[2]
         final_data=final_data[order(final_data[,len_final]),]
         names(final_data)[len_final]="q-value"
+
+
+      #cluster method
       }else {
+        #calcualte fore and back density using mean or median
         if (input$selectClusterMethod=='median'){
             if (len_fore()==1)
             {
@@ -3710,10 +5669,8 @@ if (input$select_Lung_CellLine_18 > 0) {
         }
         len=dim(cluster_density_15)[2]
         cluster_Name=cluster_density_15[for_den>back_den*input$clusterRatio & for_den>input$clusterCutoff,len]
-        #print(cluster_density_15[for_den>back_den*input$clusterRatio & for_den>input$clusterCutoff,len])
-        #cluserName <- cluster_density_15[for_den>back_den*input$clusterRatio & for_den>input$clusterCutoff,len]
-        #print(cluster_Name)
 
+        #get final data
         if (length(cluster_Name)==1)
         {
           logic= cluster_all_15_last==cluster_Name[1]
@@ -3729,17 +5686,97 @@ if (input$select_Lung_CellLine_18 > 0) {
         }
         final_data=cluster_all_15[logic,c(1:3,len_all)]
 
+      } #end of all methods
 
-      }
+
+  if (dim(final_data)[1] != 0){ #check the output is not empty
+
+
+      #write data out
+      write.table(final_data[,1:3], 'output_region/outdata', row.names=FALSE,col.names=FALSE,quote=FALSE,sep='\t')
+
+
+      #render image1
+      output$image1 <- renderImage({
+        print('plot image1')
+        target_file='output_region/outdata'
+        output_folder='H3K27ac_output'
+        feature_folder='H3K27ac_peak'
+        figName='H3K27ac_enrichment.png'
+        cal_enrichment(target_file,feature_folder,output_folder,figName)
+        print('done with image1')
+        list(src = figName,
+             contentType = 'image/png',
+             width = 400,
+             height = 300,
+             alt = "This is alternate text")
+        })
+      #end of render image1
+
+
+      #render image2
+      output$image2 <- renderImage({
+        print('plot image2')
+        target_file='output_region/outdata'
+        output_folder='DNase_output'
+        feature_folder='DNase_peak'
+        figName='DNase_enrichment.png'
+        cal_enrichment(target_file,feature_folder,output_folder,figName)
+        print('done with image2')
+        list(src = figName,
+             contentType = 'image/png',
+             width = 400,
+             height = 300,
+             alt = "This is alternate text")
+        })
+      #end of render image2
+
+
+      #get data for ctm plot
+       cmd1=paste('bedtools','intersect','-a',coord_path,'-b',target_path,'-c')
+       intersect_mark=as.data.frame(fread(cmd1))
+       H3K27ac_RPKM1=H3K27ac_RPKM[intersect_mark[,4]==1,]
+       H3K4me1_RPKM1=H3K4me1_RPKM[intersect_mark[,4]==1,]
+      #image3
+      output$image3<-renderPlot({
+          #H3K4me1
+          print('plot image3')
+          intersect_plot(H3K4me1_RPKM1,fore$data,'H3K4me1_ctm')
+          print('done with image3')
+        })
+      #end of image3
+
+
+      #start of image4
+      output$image4<-renderPlot({
+          #H3K4me1
+          print('plot image4')
+          intersect_plot(H3K27ac_RPKM1,fore$data,'H3K27ac_ctm')
+          print('done with image4')
+        })
+      #end of image4      
+
+  }#end of checking final data is not empty
+
     print(proc.time() - ptm)
     session$sendCustomMessage("download_ready", list(fileSize=floor(runif(1) * 10000)))
     final_data
 
     }) #end of table
 
-  #output table
-  output$table <- renderTable({table()})
   
+  #output table
+  output$table1 <- renderDataTable({    
+    mytable<-table()
+    print('output table')
+    mytable$epigenome_browser <- createLink(mytable$chr,mytable$start,mytable$end)
+    print('done with output table')
+    mytable
+    
+  }, escape = FALSE)
+
+  
+  #download table
   output$data_file <- downloadHandler(
     filename = function() { paste('data', '.txt', sep='') },
     content = function(file) {
@@ -3747,7 +5784,7 @@ if (input$select_Lung_CellLine_18 > 0) {
     })
 
 
-}
+}#end of server
 
 
 shinyApp(ui = ui, server = server)
